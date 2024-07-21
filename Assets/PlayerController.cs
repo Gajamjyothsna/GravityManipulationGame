@@ -19,14 +19,17 @@ public class PlayerController : MonoBehaviour
     private Vector3 gravityDirection = Vector3.down;
     private Vector3 velocity;
     private bool isGrounded = true;
-    private bool rightArrowPressed = false;
+    private bool ArrowKeyPressed = false;
+    [SerializeField]private Animator animator;
+    [SerializeField]private GameObject HologramParent;
+    public Vector3 hologramOffset;
 
     void Update()
     {
         HandleMovement();
         HandleJump();
         HandleGravityManipulation();
-        ApplyGravity();
+      //  ApplyGravity();
         UpdateCameraRotation();
     }
 
@@ -46,8 +49,14 @@ public class PlayerController : MonoBehaviour
                 velocity = new Vector3(moveDirection.x, velocity.y, moveDirection.z);
 
                 transform.position += velocity * Time.deltaTime;
+                animator.SetBool("isWalking", true);
+            }
+            else
+            {
+                animator.SetBool("isWalking", false);
             }
         }
+
     }
 
     void HandleJump()
@@ -61,20 +70,50 @@ public class PlayerController : MonoBehaviour
 
     void HandleGravityManipulation()
     {
+        //sVector3 hollowGramPosition = transform.position + new Vector3(transform.localScale.x + 0.7f, (transform.localScale.y * 2) - .1f, 0f);
+        Vector3 hollowGramPosition = transform.position*0f+hologramOffset;
+
+        if(hollowgramInstance is null)
+        {
+            hollowgramInstance = Instantiate(hollowgramPrefab,HologramParent.transform);
+            hollowgramInstance.SetActive(false);
+            hollowgramInstance.transform.localPosition=Vector3.zero;
+        }
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            rightArrowPressed = true;
+            ArrowKeyPressed = true;
             // Instantiate the hologram without rotation
-            Vector3 hollowGramPosition = transform.position + new Vector3(transform.localScale.x + 0.7f, (transform.localScale.y * 2) - .1f, 0f);
-            hollowgramInstance = Instantiate(hollowgramPrefab, hollowGramPosition, Quaternion.identity);
-            hollowgramInstance.transform.rotation = Quaternion.Euler(0, 0, 90f);
+
+            hollowgramInstance.transform.localRotation = Quaternion.Euler(0, 0, -90f);
             hollowgramInstance.SetActive(true);
         }
-
-        if (Input.GetKeyDown(KeyCode.Return) && rightArrowPressed)
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            rightArrowPressed = false;
+            ArrowKeyPressed = true;
+            hollowgramInstance.transform.localRotation = Quaternion.Euler(0, 0, 90f);
+            hollowgramInstance.SetActive(true);
+        }
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            ArrowKeyPressed = true;
+            hollowgramInstance.transform.localRotation = Quaternion.Euler(0, 0, 0f);
+            hollowgramInstance.SetActive(true);
+        }
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            ArrowKeyPressed = true;
+            hollowgramInstance.transform.localRotation = Quaternion.Euler(0, 0, 180f);
+            hollowgramInstance.SetActive(true);
+
+        }
+
+
+        if (Input.GetKeyDown(KeyCode.Return) && ArrowKeyPressed)
+        {
+            ArrowKeyPressed = false;
             StartCoroutine(MovePlayerToHologram());
+            hollowgramInstance.SetActive(false);
+
         }
     }
 
@@ -114,7 +153,7 @@ public class PlayerController : MonoBehaviour
             transform.rotation = targetRotation;
 
             // Apply gravity to simulate falling down
-            isGrounded = false;
+            /*isGrounded = false;
             velocity = new Vector3(0, -jumpForce, 0); // Initial downward velocity
 
             while (!isGrounded)
@@ -127,10 +166,10 @@ public class PlayerController : MonoBehaviour
                     velocity.y = 0;
                 }
                 yield return null;
-            }
+            }*/
 
             // Destroy the hologram
-            Destroy(hollowgramInstance);
+           // Destroy(hollowgramInstance);
         }
     }
 
